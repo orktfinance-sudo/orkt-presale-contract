@@ -2,9 +2,8 @@
 pragma solidity ^0.8.24;
 
 /// @notice ORKT website presale for BNB Chain mainnet (chainId 56).
-/// @dev Deploy with the ORKT token, treasury and owner addresses below.
-///      The BNB/USD Chainlink feed is intentionally fixed in the source to
-///      prevent an incorrect feed address being supplied at deployment.
+/// @dev All project addresses are fixed in source; deployment has no constructor arguments.
+///      Verify every address and compile this exact file before deploying.
 
 interface IERC20ORKT {
     function balanceOf(address account) external view returns (uint256);
@@ -33,6 +32,11 @@ contract ORKTWebsitePresaleV2 {
     // Official Chainlink BNB/USD proxy on BNB Chain mainnet (chainId 56).
     address public constant BNB_USD_FEED =
         0x0567F2323251f0Aab15c8dFb1967E4e8A7D42aeE;
+
+    // Fixed project wallets and token contract (BSC mainnet).
+    address public constant TOKEN_ADDRESS = 0xa36A48D646F435b7b1b9746E60C1F5726D99C48D;
+    address public constant TREASURY_ADDRESS = 0xdE5311bFdE921d90AaAED00c3D5765A5F6296Dad;
+    address public constant OWNER_ADDRESS = 0xb8549bb7309A09D9866ACBf125c683bC42191CD9;
 
     address public immutable owner;
     address public immutable treasury;
@@ -76,23 +80,19 @@ contract ORKTWebsitePresaleV2 {
         locked = 1;
     }
 
-    constructor(
-        address tokenAddress,
-        address treasuryAddress,
-        address ownerAddress
-    ) {
-        require(tokenAddress != address(0), "Invalid token");
-        require(treasuryAddress != address(0), "Invalid treasury");
-        require(ownerAddress != address(0), "Invalid owner");
-        require(tokenAddress.code.length > 0, "Token is not a contract");
+    constructor() {
+        require(TOKEN_ADDRESS != address(0), "Invalid token");
+        require(TREASURY_ADDRESS != address(0), "Invalid treasury");
+        require(OWNER_ADDRESS != address(0), "Invalid owner");
+        require(TOKEN_ADDRESS.code.length > 0, "Token is not a contract");
         require(BNB_USD_FEED.code.length > 0, "Chainlink feed not deployed");
-        require(IERC20ORKT(tokenAddress).decimals() == 18, "Token must have 18 decimals");
+        require(IERC20ORKT(TOKEN_ADDRESS).decimals() == 18, "Token must have 18 decimals");
         require(IChainlinkPriceFeed(BNB_USD_FEED).decimals() == 8, "Unexpected feed decimals");
 
-        token = IERC20ORKT(tokenAddress);
+        token = IERC20ORKT(TOKEN_ADDRESS);
         priceFeed = IChainlinkPriceFeed(BNB_USD_FEED);
-        treasury = treasuryAddress;
-        owner = ownerAddress;
+        treasury = TREASURY_ADDRESS;
+        owner = OWNER_ADDRESS;
     }
 
     function getBNBPriceWad() public view returns (uint256) {
